@@ -1,18 +1,21 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutterwave/core/core_utils/flutterwave_api_utils.dart';
 import 'package:flutterwave/core/mobile_money/mobile_money_payment_manager.dart';
 import 'package:flutterwave/models/francophone_country.dart';
 import 'package:flutterwave/models/requests/authorization.dart';
 import 'package:flutterwave/models/requests/mobile_money/mobile_money_request.dart';
 import 'package:flutterwave/models/responses/charge_response.dart';
+import 'package:flutterwave/utils/CountryCode/CountryCode.dart';
 import 'package:flutterwave/utils/flutterwave_constants.dart';
 import 'package:flutterwave/utils/flutterwave_currency.dart';
 import 'package:flutterwave/utils/flutterwave_utils.dart';
 import 'package:flutterwave/widgets/card_payment/authorization_webview.dart';
 import 'package:flutterwave/widgets/flutterwave_view_utils.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 
 class PayWithMobileMoney extends StatefulWidget {
   final MobileMoneyPaymentManager _paymentManager;
@@ -29,12 +32,18 @@ class _PayWithMobileMoneyState extends State<PayWithMobileMoney> {
   final TextEditingController _francophoneCountryCotroller =
       TextEditingController();
   final TextEditingController _voucherController = TextEditingController();
-
   final _formKey = GlobalKey<FormState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  bool isPayButtonEnables = false;
+  bool isProcessing = false;
 
+  bool isNumberValid = false;
+  String? countryCode = 'GH';
+  PhoneNumber number = PhoneNumber(isoCode: 'GH');
   BuildContext? loadingDialogContext;
   String? selectedNetwork;
+  TextEditingController controller = TextEditingController();
+  CountryCode? selectedCode;
   FrancoPhoneCountry? selectedFrancophoneCountry;
   String updatedNumber = "";
 
@@ -43,100 +52,250 @@ class _PayWithMobileMoneyState extends State<PayWithMobileMoney> {
     final String initialPhoneNumber = updatedNumber.isEmpty
         ? this.widget._paymentManager.phoneNumber
         : updatedNumber;
-    this._phoneNumberController.text = initialPhoneNumber;
+    // this._phoneNumberController.text = initialPhoneNumber;
 
     final String currency = this.widget._paymentManager.currency;
+
+    isPayButtonEnables = selectedNetwork != "" && isNumberValid;
     return MaterialApp(
       debugShowCheckedModeBanner: widget._paymentManager.isDebugMode,
-      home: Scaffold(
-        key: this._scaffoldKey,
-        appBar: FlutterwaveViewUtils.appBar(context, _getPageTitle(currency)),
-        body: Padding(
-          padding: EdgeInsets.all(10),
-          child: Container(
-            margin: EdgeInsets.fromLTRB(20, 35, 20, 0),
-            width: double.infinity,
-            child: Form(
-              key: this._formKey,
-              child: ListView(
-                children: [
-                  TextFormField(
-                    decoration: InputDecoration(
-                      labelText: "Phone Number",
-                      hintText: "Phone Number",
-                    ),
-                    controller: this._phoneNumberController,
-                    onChanged: (text) => {updatedNumber = text},
-                    validator: (value) => value != null && value.isEmpty
-                        ? "Phone number is required"
-                        : null,
-                  ),
-                  Container(
-                    margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
-                    width: double.infinity,
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        labelText: "Voucher",
-                        hintText: "voucher",
+      home: GestureDetector(
+        onTap: () {
+          FocusScopeNode currentFocus = FocusScope.of(context);
+          if (!currentFocus.hasPrimaryFocus) {
+            currentFocus.unfocus();
+          }
+        },
+        child: Scaffold(
+          body: Scaffold(
+            key: this._scaffoldKey,
+            resizeToAvoidBottomInset: false,
+            appBar:
+                FlutterwaveViewUtils.appBar(context, _getPageTitle(currency)),
+            body: Padding(
+              padding: EdgeInsets.only(left: 18, right: 18),
+              child: Container(
+                // margin: EdgeInsets.fromLTRB(0, 0, 0, 0),
+                width: double.infinity,
+                child: Form(
+                  key: this._formKey,
+                  child: ListView(
+                    children: [
+                      Container(
+                        child: InternationalPhoneNumberInput(
+                          onInputChanged: (PhoneNumber number) {
+                            setState(() {
+                              countryCode = number.isoCode;
+                              updatedNumber = number.phoneNumber.toString();
+                            });
+                          },
+                          onInputValidated: (bool value) {
+                            setState(() {
+                              isNumberValid = value;
+                            });
+                          },
+                          ignoreBlank: true,
+                          autoValidateMode: AutovalidateMode.always,
+                          initialValue: PhoneNumber(isoCode: countryCode),
+                          textFieldController: this._phoneNumberController,
+                          inputDecoration: InputDecoration(
+                            isDense: true,
+                            fillColor: Colors.white,
+                            hintText: 'Phone Number',
+                            hintStyle: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 15,
+                                color: Colors.grey),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                width: 0,
+                                style: BorderStyle.none,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                          selectorConfig: SelectorConfig(
+                            leadingPadding: 10,
+                            trailingSpace: false,
+                            selectorType: PhoneInputSelectorType.DIALOG,
+                          ),
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.black, width: .5),
+                          // color: Colors.black,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      controller: this._voucherController,
-                    ),
-                  ),
-                  Visibility(
-                    visible:
-                        currency.toUpperCase() == FlutterwaveCurrency.XAF ||
+                      Container(
+                        margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
+                        width: double.infinity,
+                        child: TextFormField(
+                          decoration: InputDecoration(
+                            isDense: true,
+                            fillColor: Colors.white,
+                            hintText: 'Voucher (optional)',
+                            hintStyle: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 15,
+                                color: Colors.grey),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                width: 1,
+                                style: BorderStyle.none,
+                                color: Colors.black,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                width: 1.1,
+                                style: BorderStyle.solid,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                          controller: this._voucherController,
+                          onChanged: (v) {
+                            setState(() {});
+                          },
+                        ),
+                      ),
+                      Visibility(
+                        visible: currency.toUpperCase() ==
+                                FlutterwaveCurrency.XAF ||
                             currency.toUpperCase() == FlutterwaveCurrency.XOF,
-                    child: Container(
-                      margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
-                      width: double.infinity,
-                      child: TextFormField(
-                        decoration: InputDecoration(
-                          labelText: "Country",
-                          hintText: "Country",
+                        child: Container(
+                          margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
+                          width: double.infinity,
+                          child: TextFormField(
+                            decoration: InputDecoration(
+                              labelText: "Country",
+                              hintText: "Country",
+                            ),
+                            controller: this._francophoneCountryCotroller,
+                            readOnly: true,
+                            onTap: this._showFrancophoneBottomSheet,
+                            validator: (value) => value != null && value.isEmpty
+                                ? "country is required"
+                                : null,
+                          ),
                         ),
-                        controller: this._francophoneCountryCotroller,
-                        readOnly: true,
-                        onTap: this._showFrancophoneBottomSheet,
-                        validator: (value) => value != null && value.isEmpty
-                            ? "country is required"
-                            : null,
                       ),
-                    ),
-                  ),
-                  Visibility(
-                    visible: currency.toUpperCase() == FlutterwaveCurrency.GHS,
-                    child: Container(
-                      margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
-                      width: double.infinity,
-                      child: TextFormField(
-                        decoration: InputDecoration(
-                          labelText: "Network",
-                          hintText: "Network",
+                      Visibility(
+                        visible:
+                            currency.toUpperCase() == FlutterwaveCurrency.GHS,
+                        child: Container(
+                          margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
+                          width: double.infinity,
+                          child: TextFormField(
+                            decoration: InputDecoration(
+                              fillColor: Colors.white,
+                              isDense: true,
+                              hintText: 'Network',
+                              hintStyle: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 15,
+                                  color: Colors.grey),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  width: 1,
+                                  style: BorderStyle.none,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(
+                                  width: 1.1,
+                                  style: BorderStyle.solid,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                            controller: this._networkController,
+                            readOnly: true,
+                            onTap: this._showNetworksBottomSheet,
+                            validator: (value) => value != null && value.isEmpty
+                                ? "Network is required"
+                                : null,
+                          ),
                         ),
-                        controller: this._networkController,
-                        readOnly: true,
-                        onTap: this._showNetworksBottomSheet,
-                        validator: (value) => value != null && value.isEmpty
-                            ? "Network is required"
-                            : null,
                       ),
-                    ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 18.0),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
+                              children: [
+                                Icon(
+                                  Icons.lock,
+                                  size: 10.0,
+                                  color: Colors.black,
+                                ),
+                                SizedBox(
+                                  width: 5.0,
+                                ),
+                                Text(
+                                  "SECURED BY FLUTTERWAVE",
+                                  style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 10.0,
+                                      fontFamily: "FLW",
+                                      letterSpacing: 1.0),
+                                )
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  Container(
-                    width: double.infinity,
+                ),
+              ),
+            ),
+            bottomNavigationBar: SafeArea(
+              child: Padding(
+                padding:
+                    EdgeInsets.only(top: 0, bottom: 20, left: 20, right: 20),
+                child: Container(
                     height: 50,
-                    margin: EdgeInsets.fromLTRB(0, 40, 0, 20),
-                    child: RaisedButton(
-                      onPressed: this._onPayPressed,
-                      color: Colors.orange,
-                      child: Text(
-                        "Pay with ${this._getPageTitle(currency)}",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                    ),
-                  )
-                ],
+                    child: MaterialButton(
+                        onPressed: !isProcessing
+                            ? isPayButtonEnables
+                                ? () {
+                                    this._onPayPressed();
+                                  }
+                                : null
+                            : null,
+                        color: Theme.of(context).primaryColor,
+                        disabledColor: Theme.of(context).primaryColorLight,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: new BorderRadius.circular(9.0)),
+                        child: new Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Expanded(
+                              child: Center(
+                                child: !isProcessing
+                                    ? new Text(
+                                        "Pay",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      )
+                                    : SpinKitThreeBounce(
+                                        size: 20, color: Colors.white),
+                              ),
+                            )
+                          ],
+                        ))),
               ),
             ),
           ),
@@ -159,37 +318,17 @@ class _PayWithMobileMoneyState extends State<PayWithMobileMoney> {
     }
   }
 
-  Future<void> _showLoading(String message) {
-    return showDialog(
-      context: this.context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        this.loadingDialogContext = context;
-        return AlertDialog(
-          content: Row(
-            children: [
-              CircularProgressIndicator(
-                backgroundColor: Colors.orangeAccent,
-              ),
-              SizedBox(
-                width: 40,
-              ),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.black),
-              )
-            ],
-          ),
-        );
-      },
-    );
+  void _showLoading(String message) {
+    setState(() {
+      isProcessing = true;
+    });
   }
 
   void _closeDialog() {
     if (this.loadingDialogContext != null) {
-      Navigator.of(this.loadingDialogContext!).pop();
-      this.loadingDialogContext = null;
+      setState(() {
+        isProcessing = false;
+      });
     }
   }
 

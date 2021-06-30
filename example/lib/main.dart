@@ -6,10 +6,43 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  static Map<int, Color> ajumaColor = {
+    50: Color.fromRGBO(83, 143, 255, .1),
+    100: Color.fromRGBO(83, 143, 255, .2),
+    200: Color.fromRGBO(83, 143, 255, .3),
+    300: Color.fromRGBO(83, 143, 255, .4),
+    400: Color.fromRGBO(83, 143, 255, .5),
+    500: Color.fromRGBO(83, 143, 255, .6),
+    600: Color.fromRGBO(83, 143, 255, .7),
+    700: Color.fromRGBO(83, 143, 255, .8),
+    800: Color.fromRGBO(83, 143, 255, .9),
+    900: Color.fromRGBO(83, 143, 255, 1),
+  };
+
+  static MaterialColor colorCustom = MaterialColor(0xFF538FFF, ajumaColor);
   @override
   Widget build(BuildContext context) {
+    final baseTheme =
+        ThemeData(primarySwatch: colorCustom, fontFamily: 'Poppins');
+
+    final theme = baseTheme.copyWith(
+      textTheme: baseTheme.textTheme.copyWith(
+        bodyText2: baseTheme.textTheme.bodyText2
+            .copyWith(fontSize: 16, color: Colors.black),
+        bodyText1: baseTheme.textTheme.bodyText1.copyWith(
+          fontSize: 16,
+          color: Colors.grey[600],
+          fontWeight: FontWeight.normal,
+        ),
+        headline6: baseTheme.textTheme.headline6.copyWith(
+          fontWeight: FontWeight.w500,
+          fontSize: 16,
+        ),
+      ),
+    );
     return MaterialApp(
       title: 'Flutter Demo',
+      theme: theme,
       home: MyHomePage(title: 'Flutterwave Beta'),
     );
   }
@@ -176,21 +209,20 @@ class _MyHomePageState extends State<MyHomePage> {
 
   _handlePaymentInitialization() async {
     final flutterwave = Flutterwave.forUIPayment(
-      amount: this.amountController.text.toString().trim(),
-      currency: this.currencyController.text,
-      context: this.context,
-      publicKey: this.publicKeyController.text.trim(),
-      encryptionKey: this.encryptionKeyController.text.trim(),
-      email: this.emailController.text.trim(),
-      fullName: "Test User",
-      txRef: DateTime.now().toIso8601String(),
-      narration: "Example Project",
-      isDebugMode: this.isDebug,
-      phoneNumber: this.phoneNumberController.text.trim(),
-      acceptAccountPayment: true,
-      acceptCardPayment: true,
-      acceptUSSDPayment: true
-    );
+        amount: this.amountController.text.toString().trim(),
+        currency: this.currencyController.text,
+        context: this.context,
+        publicKey: this.publicKeyController.text.trim(),
+        encryptionKey: this.encryptionKeyController.text.trim(),
+        email: this.emailController.text.trim(),
+        fullName: "Test User",
+        txRef: DateTime.now().toIso8601String(),
+        narration: "Example Project",
+        isDebugMode: this.isDebug,
+        phoneNumber: this.phoneNumberController.text.trim(),
+        acceptAccountPayment: true,
+        acceptCardPayment: true,
+        acceptUSSDPayment: true);
     final response = await flutterwave.initializeForUiPayments();
     if (response != null) {
       this.showLoading(response.data.status);
@@ -254,7 +286,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> showLoading(String message) {
     return showDialog(
       context: this.context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (BuildContext context) {
         return AlertDialog(
           content: Container(

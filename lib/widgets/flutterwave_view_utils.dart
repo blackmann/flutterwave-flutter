@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 class FlutterwaveViewUtils {
-
   /// Displays a modal to confirm payment
-  static Future<void> showConfirmPaymentModal(final BuildContext context,
-      final String currency, final String amount, final Function onContinuePressed) async {
+  static Future<void> showConfirmPaymentModal(
+      final BuildContext context,
+      final String currency,
+      final String amount,
+      final Function onContinuePressed) async {
     return showDialog(
       context: context,
       barrierDismissible: false,
@@ -17,7 +19,7 @@ class FlutterwaveViewUtils {
               "$amount. Do you wish to continue? ",
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.black,
+                color: Colors.black87,
                 fontSize: 18,
                 letterSpacing: 1.2,
               ),
@@ -39,7 +41,6 @@ class FlutterwaveViewUtils {
                 style: TextStyle(fontSize: 16, letterSpacing: 1),
               ),
             ),
-
           ],
         );
       },
@@ -52,7 +53,8 @@ class FlutterwaveViewUtils {
 
   static AppBar appBar(final BuildContext context, final String title) {
     return AppBar(
-      backgroundColor: Color(0xFFfff1d0),
+      elevation: 0,
+      backgroundColor: Colors.transparent,
       leading: IconButton(
         icon: Icon(Icons.arrow_back, color: Colors.black),
         onPressed: () => FlutterwaveViewUtils._goBackToPaymentScreen(context),
@@ -67,7 +69,7 @@ class FlutterwaveViewUtils {
               text: title,
               style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 20,
+                  fontSize: 17,
                   color: Colors.black),
             )
           ],
