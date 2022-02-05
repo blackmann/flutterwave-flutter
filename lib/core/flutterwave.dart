@@ -71,8 +71,7 @@ class Flutterwave {
       this.acceptGhanaPayment = false;
       this.acceptUgandaPayment = false;
       this.acceptFrancophoneMobileMoney = false;
-    }
-    if (this.currency == FlutterwaveCurrency.KES) {
+    } else if (this.currency == FlutterwaveCurrency.KES) {
       this.acceptMpesaPayment = true;
 
       this.acceptRwandaMoneyPayment = false;
@@ -82,8 +81,7 @@ class Flutterwave {
       this.acceptFrancophoneMobileMoney = false;
       this.acceptAccountPayment = false;
       this.acceptBankTransfer = false;
-    }
-    if (this.currency == FlutterwaveCurrency.RWF) {
+    } else if (this.currency == FlutterwaveCurrency.RWF) {
       this.acceptRwandaMoneyPayment = true;
 
       this.acceptMpesaPayment = false;
@@ -94,8 +92,7 @@ class Flutterwave {
       this.acceptAccountPayment = false;
       this.acceptUSSDPayment = false;
       this.acceptBankTransfer = false;
-    }
-    if (this.currency == FlutterwaveCurrency.UGX) {
+    } else if (this.currency == FlutterwaveCurrency.UGX) {
       this.acceptUgandaPayment = true;
       this.acceptMpesaPayment = false;
       this.acceptZambiaPayment = false;
@@ -105,8 +102,7 @@ class Flutterwave {
       this.acceptUSSDPayment = false;
       this.acceptRwandaMoneyPayment = false;
       this.acceptBankTransfer = false;
-    }
-    if (this.currency == FlutterwaveCurrency.ZMW) {
+    } else if (this.currency == FlutterwaveCurrency.ZMW) {
       this.acceptZambiaPayment = true;
 
       this.acceptAccountPayment = false;
@@ -117,8 +113,7 @@ class Flutterwave {
       this.acceptFrancophoneMobileMoney = false;
       this.acceptUSSDPayment = false;
       this.acceptBankTransfer = false;
-    }
-    if (this.currency == FlutterwaveCurrency.GHS) {
+    } else if (this.currency == FlutterwaveCurrency.GHS) {
       this.acceptGhanaPayment = true;
       this.acceptAccountPayment = false;
       this.acceptRwandaMoneyPayment = false;
@@ -127,8 +122,7 @@ class Flutterwave {
       this.acceptFrancophoneMobileMoney = false;
       this.acceptUSSDPayment = false;
       this.acceptBankTransfer = false;
-    }
-    if (this.currency == FlutterwaveCurrency.XAF ||
+    } else if (this.currency == FlutterwaveCurrency.XAF ||
         this.currency == FlutterwaveCurrency.XOF) {
       this.acceptFrancophoneMobileMoney = true;
       this.acceptAccountPayment = false;
@@ -138,8 +132,7 @@ class Flutterwave {
       this.acceptUgandaPayment = false;
       this.acceptUSSDPayment = false;
       this.acceptBankTransfer = false;
-    }
-    if (this.currency == FlutterwaveCurrency.ZAR) {
+    } else if (this.currency == FlutterwaveCurrency.ZAR) {
       this.acceptFrancophoneMobileMoney = false;
       this.acceptAccountPayment = false;
       this.acceptRwandaMoneyPayment = false;
@@ -150,14 +143,6 @@ class Flutterwave {
       this.acceptBankTransfer = false;
     } else {
       this.acceptCardPayment = true;
-
-      this.acceptAccountPayment = false;
-      // this.acceptRwandaMoneyPayment = false;
-      // this.acceptMpesaPayment = false;
-      this.acceptGhanaPayment = true;
-      this.acceptUgandaPayment = false;
-      this.acceptUSSDPayment = false;
-      this.acceptBankTransfer = false;
     }
   }
 
